@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Text Editor with Correct Answer Check</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.0.0/dist/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+    <style>
+        .bg-info {
+            background-color: #ECD69F !important;
+        }
+
+        body {
+            transition: background-color 0.3s, color 0.3s;
+        }
+        .light-theme {
+            background-color:#00674F; /* Light background */
+            color: #212529; /* Dark text */
+        }
+        .dark-theme {
+            background-color: #343a40; /* Dark background */
+            color: #ffffff; /* Light text */
+        }
+        #editor {
+            height: 60vh; /* Make the editor taller */
+            border: 3px solid grey;
+            margin: 20px 90px;
+            width:  90vh;
+            border-radius: 8px; /* Add rounded corners */
+            overflow: hidden;
+        }
+        /* Updated theme toggle button styling */
+        #themeToggle {
+            margin-top: 8px;
+            margin-left: 95px;
+            padding-top: 2px;
+            width: 40px;
+            /* Smaller width */
+            height: 40px;
+            /* Smaller height */
+            border-radius: 50%;
+            /* Makes the button circular */
+            background-color: #6c757d;
+            color: #fff;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            transition: background-color 0.3s ease, transform 0.2s ease;
+        }
+        #themeToggle:hover {
+            transform: scale(1.1); /* Slightly enlarges on hover */
+        }
+        .message {
+            margin-left: 50px;
+            font-size: 18px;
+            font-weight: bold;
+            color: green;
+        }
+        /* Styles for the right text box */
+        .text-box {
+            position: absolute;
+            top: 150px;
+            right: 20px;
+            width: 300px;
+            height: 60vh;
+            border: 2px solid grey;
+            border-radius: 8px;
+            padding: 15px;
+            overflow-y: auto;
+            transition: background-color 0.3s, color 0.3s;
+        }
+        .light-theme .text-box {
+            background-color: #f9f9f9;
+            color: #000000;
+        }
+        .dark-theme .text-box {
+            background-color: #282828;
+            color: #ffffff;
+        }
+        .text-box{
+            width:40%;
+            margin-right: 70px;
+            margin-top: 80px;
+        }
+    </style>
+</head>
+<body class="light-theme">
+    <header class="bg-info" style="position: fixed; width:100%; z-index:1">
+        <div class="row text-white">
+            <div class="col-md-6 col-9 pt-4 pl-5">
+                <h2 id="name">Debug Quest</h2>
+            </div>
+            <div class="col-md-6 p-4 col-3 my-auto">
+                <nav class="navbar navbar-expand-lg navbar-light">
+                    <button class="navbar-toggler ml-auto" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+                        <span class="navbar-toggler-icon"></span>
+                    </button>
+                    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+                        <ul class="navbar-nav ml-auto">
+                            <li class="nav-item active">
+                                <a class="nav-link text-white" href="difficulty.html">Home<span class="sr-only">(current)</span></a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link text-white" href="easy.html">Difficulty</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link text-white" href="#contact-section">Contact</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link text-white" href="#experience-section">Profile</a>
+                            </li>
+                        </ul>
+                    </div>
+                </nav>
+            </div>
+        </div>
+    </header>
+    <div>
+    <section style="padding-top:10em;"></section>
+    <button id="themeToggle" class="btn btn-secondary">☀️</button> <!-- Button with light icon -->
+    <div id="editor"></div>
+    <p class="message"></p>
+
+    <!-- Right text box -->
+    <div id="text-box" class="text-box">
+        <p>This is a sample text inside the text box. It shows some information, and it will change its theme when the theme button is clicked.</p>
+    </div>
+
+    <script src="https://unpkg.com/monaco-editor/min/vs/loader.js"></script>
+    <script>
+        require.config({ paths: { 'vs': 'https://unpkg.com/monaco-editor/min/vs' }});
+        require(['vs/editor/editor.main'], function() {
+            // Define light theme
+            monaco.editor.defineTheme('myLightTheme', {
+                base: 'vs',
+                inherit: true,
+                rules: [
+                    { token: 'comment', foreground: '008800', fontStyle: 'italic' },
+                    { token: 'keyword', foreground: '0000FF' },
+                ],
+                colors: {
+                    'editor.background': '#FFFFFF',
+                    'editor.foreground': '#000000',
+                }
+            });
+
+            // Define dark theme
+            monaco.editor.defineTheme('myDarkTheme', {
+                base: 'vs-dark',
+                inherit: true,
+                rules: [
+                    { token: 'comment', foreground: '008800', fontStyle: 'italic' },
+                    { token: 'keyword', foreground: '0000FF' },
+                ],
+                colors: {
+                    'editor.background': '#282828',
+                    'editor.foreground': '#FFFFFF',
+                }
+            });
+
+            // Set initial theme
+            let currentTheme = 'myLightTheme';
+            monaco.editor.setTheme(currentTheme);
+
+            // Create the editor
+            const editor = monaco.editor.create(document.getElementById('editor'), {
+                value: 'for i in range(5)\n    print(i)',
+                language: 'python'
+            });
+
+            // Theme toggle button functionality
+            document.getElementById('themeToggle').addEventListener('click', () => {
+                if (currentTheme === 'myLightTheme') {
+                    currentTheme = 'myDarkTheme';
+                    monaco.editor.setTheme(currentTheme);
+                    document.body.classList.remove('light-theme');
+                    document.body.classList.add('dark-theme');
+                    document.getElementById('themeToggle').textContent = '🌙'; // Dark mode icon
+                } else {
+                    currentTheme = 'myLightTheme';
+                    monaco.editor.setTheme(currentTheme);
+                    document.body.classList.remove('dark-theme');
+                    document.body.classList.add('light-theme');
+                    document.getElementById('themeToggle').textContent = '☀️'; // Light mode icon
+                }
+            });
+
+            // Correct answer check
+            const correctLines = [
+                'for i in range(5):\n    print(i)',  // Python code with correct indentation
+                'The second correct answer.'         // Placeholder for other correct answers
+            ];
+
+            const message = document.getElementsByClassName('message')[0];
+
+            // Function to log and check the user input
+            editor.onDidChangeModelContent(() => {
+                const text = editor.getValue(); // Get the exact value from the editor
+                console.log("User input:\n" + text); // Log the user's input for debugging
+                console.log("Correct answer:\n" + correctLines[0]); // Log correct answer for comparison
+
+                if (correctLines.includes(text)) {
+                    message.textContent = "CORRECT ANSWER";
+                } else {
+                    message.textContent = "Try Again!";
+                }
+            });
+        });
+    </script>
+    </div>
+</body>
+</html>
